@@ -12,4 +12,6 @@ https://github.com/eishay/jvm-serializers/wiki
 
 ### Design Patterns for Microservices
 https://dzone.com/articles/design-patterns-for-microservices-1
+### 微服务的设计模式
+https://www.servicemesher.com/blog/design-patterns-for-microservices/
 
