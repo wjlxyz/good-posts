@@ -9,3 +9,7 @@ https://theo.im/blog/2017/10/14/suspicious-502-error-from-elb/
 
 ### JVM各种编解码方式性能测试对比
 https://github.com/eishay/jvm-serializers/wiki
+
+### Design Patterns for Microservices
+https://dzone.com/articles/design-patterns-for-microservices-1
+
