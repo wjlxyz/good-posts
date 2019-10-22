@@ -6,3 +6,6 @@ https://stackify.com/ultimate-guide-performance-testing-and-software-testing/
 
 ### 解决 AWS ELB 偶发的 502 Bad Gateway 错误
 https://theo.im/blog/2017/10/14/suspicious-502-error-from-elb/
+
+### JVM各种编解码方式性能测试对比
+https://github.com/eishay/jvm-serializers/wiki
