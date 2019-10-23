@@ -18,3 +18,6 @@ https://dzone.com/articles/design-patterns-for-microservices-1
 ### 微服务的设计模式
 https://www.servicemesher.com/blog/design-patterns-for-microservices/
 ***
+### 最佳日志实践
+https://zhuanlan.zhihu.com/p/27363484
+*** 
