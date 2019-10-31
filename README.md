@@ -21,3 +21,7 @@ https://www.servicemesher.com/blog/design-patterns-for-microservices/
 ### 最佳日志实践
 https://zhuanlan.zhihu.com/p/27363484
 *** 
+### SpringBoot-Async-线程池爆满问题解决过程
+https://www.wangzhenhua.rocks/zh-hans/spring-boot-async-thread-pool-error
+***
+
