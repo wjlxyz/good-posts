@@ -27,4 +27,7 @@ https://www.wangzhenhua.rocks/zh-hans/spring-boot-async-thread-pool-error
 ### 孰优孰劣？Dubbo VS Spring Cloud性能测试大对决！
 https://mp.weixin.qq.com/s/omVAEzQTcV5o5AGsSU_u7Q
 ***
+### 解决“nginx-job-for-nginx-service-failed-because-the-control-process-exited”
+https://stackoverflow.com/questions/35868976/nginx-job-for-nginx-service-failed-because-the-control-process-exited/51684856#51684856
+***
 
