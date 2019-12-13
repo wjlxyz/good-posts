@@ -329,6 +329,13 @@ CAP理论：一个分布式系统最多只能同时满足一致性（Consistency
 分区容错性指“the system continues to operate despite arbitrary message loss or failure of part of the system”，即分布式系统在遇到某节点或网络分区故障的时候，仍然能够对外提供满足一致性和可用性的服务。
 
 ### 32. 什么是BASE？和CAP什么区别？
+BASE是指基本可用（Basically Available）、软状态（ Soft State）、最终一致性（ Eventual Consistency）。
+
+BASE定理是对CAP定理的延伸：即使无法做到强一致性（Strong Consistency），但应用可以采用适合的方式达到最终一致性（Eventual Consitency）。CAP中提到的一致性是强一致性，所谓“牺牲一致性”指牺牲强一致性保证弱一致性。
+
+基本可用：出现故障的时候，允许损失部分可用性，即，保证核心可用。
+软状态：允许系统存在中间状态，而该中间状态不会影响系统整体可用性。
+最终一致性：系统中的所有数据副本经过一定时间后，最终能够达到一致的状态。
 
 ### 33. CAP怎么推导？如何取舍？
 CA without P：这种情况在分布式系统中几乎是不存在的。首先在分布式环境下，网络分区是一个自然的事实。因为分区是必然的，所以如果舍弃P，意味着要舍弃分布式系统。那也就没有必要再讨论CAP理论了。这也是为什么在前面的CAP证明中，我们以系统满足P为前提论述了无法同时满足C和A。
