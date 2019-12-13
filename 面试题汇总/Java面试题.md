@@ -1,6 +1,56 @@
 ## 【精品问答】Java专业术语50问
 
-[TOC]
+* [【精品问答】Java专业术语50问](#精品问答java专业术语50问)
+         * [1. StringBuffer和StringBuilder区别是什么？](#1-stringbuffer和stringbuilder区别是什么)
+         * [2. 什么是线程安全？](#2-什么是线程安全)
+         * [3. 什么是死锁？](#3-什么是死锁)
+         * [4. synchronized的实现原理是什么？](#4-synchronized的实现原理是什么)
+         * [5. 有了synchronized，还需要volatile做什么事？](#5-有了synchronized还需要volatile做什么事)
+         * [6. synchronized的锁优化是怎么处理的？](#6-synchronized的锁优化是怎么处理的)
+         * [7. JMM是什么？](#7-jmm是什么)
+         * [8. Java并发包都有哪些，性能怎样？](#8-java并发包都有哪些性能怎样)
+         * [9. 什么是fail-fast？](#9-什么是fail-fast)
+         * [10. 什么是fail-safe？](#10-什么是fail-safe)
+         * [11. 什么是CopyOnWrite？](#11-什么是copyonwrite)
+         * [12. 什么是AQS呢？](#12-什么是aqs呢)
+         * [13. 什么是CAS呢？](#13-什么是cas呢)
+         * [14. 乐观锁是怎样的？](#14-乐观锁是怎样的)
+         * [15. 乐观锁悲观锁区别是什么？](#15-乐观锁悲观锁区别是什么)
+         * [16. 数据库如何实现悲观锁和乐观锁？](#16-数据库如何实现悲观锁和乐观锁)
+         * [17. 数据库锁和隔离级别有什么关系？](#17-数据库锁和隔离级别有什么关系)
+         * [18. 数据库锁和索引有什么关系？](#18-数据库锁和索引有什么关系)
+         * [19. 什么是聚簇索引？](#19-什么是聚簇索引)
+         * [20. 什么是非聚簇索引？](#20-什么是非聚簇索引)
+         * [21. 索引最左前缀是什么？](#21-索引最左前缀是什么)
+         * [22. 什么是B 树索引？](#22-什么是b树索引)
+         * [23. 什么是联合索引？](#23-什么是联合索引)
+         * [24. 什么是回表？](#24-什么是回表)
+         * [25. 分布式锁有了解吗？](#25-分布式锁有了解吗)
+         * [26. Redis怎么实现分布式锁？](#26-redis怎么实现分布式锁)
+         * [27. 为什么要用Redis？](#27-为什么要用redis)
+         * [28. Redis和memcache区别是什么？](#28-redis和memcache区别是什么)
+         * [29. Zookeeper怎么实现分布式锁？](#29-zookeeper怎么实现分布式锁)
+         * [30. 什么是Zookeeper？](#30-什么是zookeeper)
+         * [31. 什么是CAP？](#31-什么是cap)
+         * [32. 什么是BASE？和CAP什么区别？](#32-什么是base和cap什么区别)
+         * [33. CAP怎么推导？如何取舍？](#33-cap怎么推导如何取舍)
+         * [34. 分布式系统怎么保证数据一致性？](#34-分布式系统怎么保证数据一致性)
+         * [35. 什么是分布式事务？分布式事务方案？](#35-什么是分布式事务分布式事务方案)
+         * [36. 线程安全的单例？](#36-线程安全的单例)
+         * [37. 不用synchronized和lock能实现线程安全的单例吗？](#37-不用synchronized和lock能实现线程安全的单例吗)
+         * [38. 什么是Paxos算法？](#38-什么是paxos算法)
+         * [39. ArrayList和LinkedList和Vector的区别](#39-arraylist和linkedlist和vector的区别)
+         * [40. SynchronizedList和Vector的区别](#40-synchronizedlist和vector的区别)
+         * [41. Arrays.asList获得的List使用时需要注意什么](#41-arraysaslist获得的list使用时需要注意什么)
+         * [42. List和原始类型List之间的区别?](#42-list和原始类型list之间的区别)
+         * [43. List&lt;?&gt;和List之间的区别是什么?](#43-list和list之间的区别是什么)
+         * [44. synchronized是如何实现的？](#44-synchronized是如何实现的)
+         * [45. BIO、NIO和AIO的区别、三种IO的用法与原理](#45-bionio和aio的区别三种io的用法与原理)
+         * [46. ConcurrentSkipListMap](#46-concurrentskiplistmap)
+         * [47. String.valueOf和Integer.toString的区别](#47-stringvalueof和integertostring的区别)
+         * [48. Integer的缓存机制](#48-integer的缓存机制)
+         * [49. Set如何保证元素不重复?](#49-set如何保证元素不重复)
+         * [50. Java中如何保证线程安全？](#50-java中如何保证线程安全)
 
 Java作为最流行的语言，一直占据着非常大的市场，但是很多遍Java程序员没有把Java基础的专业知识把握好，所以后期开发遇到问题非常多，下面来看一些Java常见的专业术语知识。
 
@@ -299,6 +349,6 @@ cpu利用：redis单线程模型只能使用一个cpu，可以开启多个redis�
 
 ### 48. Integer的缓存机制
 
-### 549. Set如何保证元素不重复?
+### 49. Set如何保证元素不重复?
 
 ### 50. Java中如何保证线程安全？
