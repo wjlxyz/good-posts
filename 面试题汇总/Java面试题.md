@@ -1,10 +1,10 @@
 ## 【精品问答】Java专业术语50问
 
 * [【精品问答】Java专业术语50问](#精品问答java专业术语50问)
-         * [1. StringBuffer和StringBuilder区别是什么？](#1-stringbuffer和stringbuilder区别是什么)
-         * [2. 什么是线程安全？](#2-什么是线程安全)
-         * [3. 什么是死锁？](#3-什么是死锁)
-         * [4. synchronized的实现原理是什么？](#4-synchronized的实现原理是什么)
+         - [1. StringBuffer和StringBuilder区别是什么？](#1-stringbuffer和stringbuilder区别是什么)
+         - [2. 什么是线程安全？](#2-什么是线程安全)
+         - [3. 什么是死锁？](#3-什么是死锁)
+         - [4. synchronized的实现原理是什么？](#4-synchronized的实现原理是什么)
          * [5. 有了synchronized，还需要volatile做什么事？](#5-有了synchronized还需要volatile做什么事)
          * [6. synchronized的锁优化是怎么处理的？](#6-synchronized的锁优化是怎么处理的)
          * [7. JMM是什么？](#7-jmm是什么)
@@ -154,6 +154,7 @@ CAS的两个缺点： ABA 的问题，就是一个值从A变成了B又变成了A
 **乐观锁(Optimistic Lock)** 每次拿数据的时候都不会上锁，在更新的时候会判断一下在此期间别人有没有去更新这个数据。乐观锁适用于多读的应用类型，这样可以提高吞吐量。
 
 **区别** 两种锁各有优缺点，乐观锁适用于写比较少的情况下，即冲突真的很少发生的时候，这样可以省去了锁的开销，加大了系统的整个吞吐量。悲观锁适用于经常产生冲突，上层应用会不断的进行retry。
+
 
 ### 16. 数据库如何实现悲观锁和乐观锁？
 
@@ -375,3 +376,4 @@ AP wihtout C：要高可用并允许分区，则需放弃一致性。一旦网�
 ### 49. Set如何保证元素不重复?
 
 ### 50. Java中如何保证线程安全？
+
