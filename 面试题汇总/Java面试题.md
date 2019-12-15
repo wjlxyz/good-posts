@@ -344,36 +344,180 @@ CP without A：如果一个分布式系统不要求强的可用性，即容许�
 AP wihtout C：要高可用并允许分区，则需放弃一致性。一旦网络问题发生，节点之间可能会失去联系。为了保证高可用，需要在用户访问时可以马上得到返回，则每个节点只能用本地数据提供服务，而这样会导致全局数据的不一致性。
 
 ### 34. 分布式系统怎么保证数据一致性？
+基于XA协议的二阶段提交
+消息事务+最终一致性
+TCC编程模式
+
+1、分布式事务
+
+要想理解分布式事务，我们需要先介绍一下两阶段提交协议。
+
+两阶段提交协议（Two-phase Commit，2PC）经常被用来实现分布式事务。一般分为协调器和若干事务执行者两种角色。这里的事务执行者就是具体的数据库，抽象点可以说是可以控制给数据库的程序。 协调器可以和事务执行器在一台机器上。
+
+在分布式系统中，每个节点虽然可以知晓自己的操作的成功或者失败，却无法知道其他节点的操作的成功或失败。当一个事务跨越多个节点时，为了保持事务的ACID特性，需要引入一个作为协调者的组件来统一掌控所有节点(称作参与者)。
+
+2、非事务型消息队列+本地消息表
+
+此方案关键是要有个本地消息表，基本思路就是：
+
+消息生产方，需要额外建一个消息表，并记录消息发送状态。消息表和业务数据要在一个事务里提交。
+消息消费方：处理消息并完成自己的业务逻辑。此时如果本地事务处理成功，那发送给生产方一个confirm消息，表明已经处理成功了。如果处理失败，则将消息放回MQ。
+生产方定时扫描本地消息表，把还没处理完成的消息重新发送一遍，直到本地消息表中记录的该消息为已成功状态。
+
+3、事务型消息队列
+
+事务型消息实际上是一个很理想的想法，目前市面上大部分MQ都不支持事务消息，其中包括目前比较火的kafka。阿里的RocketMQ是可以支持事务型消息的MQ，根据网传的资料，大概了解到RocketMQ的事务消息相当于在普通MQ的基础上，提供了2PC的提交接口。把非事务型消息队列中的消息状态和重发等用中间件形式封装了。
 
 ### 35. 什么是分布式事务？分布式事务方案？
+分布式事务就是指事务的参与者、支持事务的服务器、资源服务器以及事务管理器分别位于不同的分布式系统的不同节点之上。简单的说，就是一次大的操作由不同的小操作组成，这些小的操作分布在不同的服务器上，且属于不同的应用，分布式事务需要保证这些小操作要么全部成功，要么全部失败。本质上来说，分布式事务就是为了保证不同数据库的数据一致性。
+
+基于XA协议的二阶段提交
+在XA协议中分为两阶段:
+第一阶段：事务管理器要求每个涉及到事务的数据库预提交(precommit)此操作，并反映是否可以提交.
+第二阶段：事务协调器要求每个数据库提交数据，或者回滚数据。
+缺点：单点问题，同步阻塞，数据不一致
+
+TCC编程模式:TCC（Try-Confirm-Cancel）
+对于TCC的解释:
+Try阶段：尝试执行,完成所有业务检查（一致性）,预留必须业务资源（准隔离性）
+Confirm阶段：确认执行真正执行业务，不作任何业务检查，只使用Try阶段预留的业务资源，Confirm操作满足幂等性。要求具备幂等设计，Confirm失败后需要进行重试。
+Cancel阶段：取消执行，释放Try阶段预留的业务资源
+Cancel操作满足幂等性Cancel阶段的异常和Confirm阶段异常处理方案基本上一致。
 
 ### 36. 线程安全的单例？
+内部类、双重检查、枚举类
 
 ### 37. 不用synchronized和lock能实现线程安全的单例吗？
+如果不那么吹毛求疵的话，可以使用枚举、静态内部类以及饿汉模式来实现单例模式。但是，上面这几种方法其实底层也都用到了synchronized。
+
+在JDK1.5 中新增java.util.concurrent(J.U.C)就是建立在CAS之上的。相对于对于synchronized这种阻塞算法，CAS是非阻塞算法的一种常见实现。所以J.U.C在性能上有了很大的提升。
+
+public class Singleton {
+    private static final AtomicReference<Singleton> INSTANCE = new AtomicReference<Singleton>(); 
+
+    private Singleton() {}
+
+    public static Singleton getInstance() {
+        for (;;) {
+            Singleton singleton = INSTANCE.get();
+            if (null != singleton) {
+                return singleton;
+            }
+
+            singleton = new Singleton();
+            if (INSTANCE.compareAndSet(null, singleton)) {
+                return singleton;
+            }
+        }
+    }
+}
+
+用CAS的好处在于不需要使用传统的锁机制来保证线程安全,CAS是一种基于忙等待的算法,依赖底层硬件的实现,相对于锁它没有线程切换和阻塞的额外消耗,可以支持较大的并行度。
+CAS的一个重要缺点在于如果忙等待一直执行不成功(一直在死循环中),会对CPU造成较大的执行开销。
 
 ### 38. 什么是Paxos算法？
+Paxos算法是基于消息传递且具有高度容错特性的一致性算法，是目前公认的解决分布式一致性问题最有效的算法之一。
+在Paxos算法中，有三种角色：
+
+Proposer
+Acceptor
+Learners
+在具体的实现中，一个进程可能同时充当多种角色。比如一个进程可能既是Proposer又是Acceptor又是Learner。
+还有一个很重要的概念叫提案（Proposal）。最终要达成一致的value就在提案里。
+
+注：
+暂且认为『提案=value』，即提案只包含value。在我们接下来的推导过程中会发现如果提案只包含value，会有问题，于是我们再对提案重新设计。
+暂且认为『Proposer可以直接提出提案』。在我们接下来的推导过程中会发现如果Proposer直接提出提案会有问题，需要增加一个学习提案的过程。
+Proposer可以提出（propose）提案；Acceptor可以接受（accept）提案；如果某个提案被选定（chosen），那么该提案里的value就被选定了。
+
+回到刚刚说的『对某个数据的值达成一致』，指的是Proposer、Acceptor、Learner都认为同一个value被选定（chosen）。那么，Proposer、Acceptor、Learner分别在什么情况下才能认为某个value被选定呢？
+
+Proposer：只要Proposer发的提案被Acceptor接受（刚开始先认为只需要一个Acceptor接受即可，在推导过程中会发现需要半数以上的Acceptor同意才行），Proposer就认为该提案里的value被选定了。
+Acceptor：只要Acceptor接受了某个提案，Acceptor就任务该提案里的value被选定了。
+Learner：Acceptor告诉Learner哪个value被选定，Learner就认为那个value被选定。
 
 ### 39. ArrayList和LinkedList和Vector的区别
+ArrayList 本质上是一个可改变大小的数组.当元素加入时,其大小将会动态地增长.内部的元素可以直接通过get与set方法进行访问.元素顺序存储 ,随机访问很快，删除非头尾元素慢，新增元素慢而且费资源 ,较适用于无频繁增删的情况 ,比数组效率低，如果不是需要可变数组，可考虑使用数组 ,非线程安全.
+LinkedList 是一个双链表,在添加和删除元素时具有比ArrayList更好的性能.但在get与set方面弱于ArrayList. 适用于 ：没有大规模的随机读取，有大量的增加/删除操作.随机访问很慢，增删操作很快，不耗费多余资源 ,允许null元素,非线程安全.
+Vector （类似于ArrayList）但其是同步的，开销就比ArrayList要大。如果你的程序本身是线程安全的，那么使用ArrayList是更好的选择。 Vector和ArrayList在更多元素添加进来时会请求更大的空间。Vector每次请求其大小的双倍空间，而ArrayList每次对size增长50%.
 
 ### 40. SynchronizedList和Vector的区别
+Vector是java.util包中的一个类。 SynchronizedList是java.util.Collections中的一个静态内部类。
+在多线程的场景中可以直接使用Vector类，也可以使用Collections.synchronizedList(List list)方法来返回一个线程安全的List。
+
+1.Vector使用同步方法实现，synchronizedList使用同步代码块实现。 
+2.两者的扩充数组容量方式不一样（两者的add方法在扩容方面的差别也就是ArrayList和Vector的差别。
+1.同步代码块在锁定的范围上可能比同步方法要小，一般来说锁的范围大小和性能是成反比的。 2.同步块可以更加精确的控制锁的作用域（锁的作用域就是从锁被获取到其被释放的时间），同步方法的锁的作用域就是整个方法。 3.静态代码块可以选择对哪个对象加锁，但是静态方法只能给this对象加锁。
+
+SynchronizedList和Vector最主要的区别： 1.SynchronizedList有很好的扩展和兼容功能。他可以将所有的List的子类转成线程安全的类。 2.使用SynchronizedList的时候，进行遍历时要手动进行同步处理。 3.SynchronizedList可以指定锁定的对象。
 
 ### 41. Arrays.asList获得的List使用时需要注意什么
+Arrays.asList( a [] ) 是以底层的数组作为其物理实现，直接修改由此产生的list，底层的数组是会变化。另外这样产生的list的大小固定的，不能往其中新添元素！
+基本类型不能作为泛型参数传入.如果需要,改成对应的包装类
+Arrays.asList返回的是固定只读的ArrayList,如果后面可能会改变,慎用该方法.
 
 ### 42. List和原始类型List之间的区别?
+List：原生态类型
+List<Object>：参数化的类型，表明List中可以容纳任意类型的对象
+List<?>：无限定通配符类型，表示只能包含某一种未知对象类型
+
+原生态类型的含义是不带任何实际参数的泛型名称，例如Java 1.5后改为泛型实现的List<E>，List就是它的原生态类型，与没有引入泛型之前的类型完全一致。
+如果使用原生态类型，就失掉了泛型在安全性和表述性方面的所有优势。——Effective Java
 
 ### 43. List<?>和List之间的区别是什么?
 
 ### 44. synchronized是如何实现的？
+Java 虚拟机中的同步(Synchronization)基于进入和退出管程(Monitor)对象实现， 无论是显式同步(有明确的 monitorenter 和 monitorexit 指令,即同步代码块)还是隐式同步都是如此。在 Java 语言中，同步用的最多的地方可能是被 synchronized 修饰的同步方法。同步方法 并不是由 monitorenter 和 monitorexit 指令来实现同步的，而是由方法调用指令读取运行时常量池中方法的 ACC_SYNCHRONIZED 标志来隐式实现的
 
 ### 45. BIO、NIO和AIO的区别、三种IO的用法与原理
+BIO 就是传统的 java.io 包，它是基于流模型实现的，交互的方式是同步、阻塞方式，也就是说在读入输入流或者输出流时，在读写动作完成之前，线程会一直阻塞在那里，它们之间的调用时可靠的线性顺序。它的有点就是代码比较简单、直观；缺点就是 IO 的效率和扩展性很低，容易成为应用性能瓶颈。
+NIO 是 Java 1.4 引入的 java.nio 包，提供了 Channel、Selector、Buffer 等新的抽象，可以构建多路复用的、同步非阻塞 IO 程序，同时提供了更接近操作系统底层高性能的数据操作方式。
+AIO 是 Java 1.7 之后引入的包，是 NIO 的升级版本，提供了异步非堵塞的 IO 操作方式，所以人们叫它 AIO（Asynchronous IO），异步 IO 是基于事件和回调机制实现的，也就是应用操作之后会直接返回，不会堵塞在那里，当后台处理完成，操作系统会通知相应的线程进行后续的操作。
 
 ### 46. ConcurrentSkipListMap
+concurrentHashMap与ConcurrentSkipListMap性能测试
+在4线程1.6万数据的条件下，ConcurrentHashMap 存取速度是ConcurrentSkipListMap 的4倍左右。
+
+但ConcurrentSkipListMap有几个ConcurrentHashMap 不能比拟的优点：
+
+1、ConcurrentSkipListMap 的key是有序的。
+2、ConcurrentSkipListMap 支持更高的并发。ConcurrentSkipListMap 的存取时间是log（N），和线程数几乎无关。也就是说在数据量一定的情况下，并发的线程越多，ConcurrentSkipListMap越能体现出他的优势。 
+ConcurrentSkipListMap提供了一种线程安全的并发访问的排序映射表。内部是SkipList（跳表）结构实现，在理论上能够在O(log(n))时间内完成查找、插入、删除操作。
+注意，调用ConcurrentSkipListMap的size时，由于多个线程可以同时对映射表进行操作，所以映射表需要遍历整个链表才能返回元素个数，这个操作是个O(log(n))的操作。
 
 ### 47. String.valueOf和Integer.toString的区别
+ java.lang.Object类里已有public方法.toString()，所以对任何严格意义上的java对象都可以调用此方法。但在使用时要注意，必须保证object不是null值，否则将抛出NullPointerException异常。
+
+而valueOf(Object obj)对null值进行了处理，不会报任何异常。但当object为null 时，String.valueOf（object）的值是字符串”null”，而不是null。
 
 ### 48. Integer的缓存机制
+在Integer的操作上引入了一个新功能来节省内存和提高性能。整型对象通过使用相同的对象引用实现了缓存和重用。
+适用于整数值区间-128 至 +127。
+只适用于自动装箱。使用构造函数创建对象不适用。
+
+这种缓存行为不仅适用于Integer对象。我们针对所有的整数类型的类都有类似的缓存机制。
+
+有ByteCache用于缓存Byte对象;
+有ShortCache用于缓存Short对象;
+有LongCache用于缓存Long对象;
+有CharacterCache用于缓存Character对象.
+
+Byte, Short, Long有固定范围: -128 到 127。对于Character, 范围是 0 到 127。除了Integer以外，这个范围都不能改变。
 
 ### 49. Set如何保证元素不重复?
+因为HashMap在put一个Key时会判断，将要放进去的Key的hash值与 目前HashMap中定位到的那个Key的hash值比较。
+如果hash值相当，继续比较 这两个对象的地址或者内容是否相当。
+如果相当：判断出来要添加的Key与HashMap中的Key重复，把Value的值给替换成最新的。
+HashSet中的Value是一个固定值PRESENT。 所以修改不修改无所谓。
 
 ### 50. Java中如何保证线程安全？
+1. 最简单的方式是加入synchronized关键字，只要将操作共享数据的语句加入synchronized关键字，在某一时段只会让一个线程执行完，在执行过程中，其他线程不能进来执行。2. 锁。
+
+区别：
+
+a.Lock使用起来比较灵活，但需要手动释放和开启；采用synchronized不需要用户去手动释放锁，当synchronized方法或者synchronized代码块执行完之后，系统会自动让线程释放对锁的占用；
+b.Lock不是Java语言内置的，synchronized是Java语言的关键字，因此是内置特性。Lock是一个类，通过这个类可以实现同步访问；
+c.在并发量比较小的情况下，使用synchronized是个不错的选择，但是在并发量比较高的情况下，其性能下降很严重，此时Lock是个不错的方案。
+d.使用Lock的时候，等待/通知 是使用的Condition对象的await()/signal()/signalAll()  ，而使用synchronized的时候，则是对象的wait()/notify()/notifyAll();由此可以看出，使用Lock的时候，粒度更细了，一个Lock可以对应多个Condition。
+e.虽然Lock缺少了synchronized隐式获取释放锁的便捷性，但是却拥有了锁获取与是释放的可操作性、可中断的获取锁以及超时获取锁等多种synchronized所不具备的同步特性;
 
